@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mars Dust Storm Detection</title>
+    <script>
+      // Force dark theme immediately before any rendering
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    </script>
+    <style>
+      /* Inline critical CSS to prevent white flash */
+      html, body, #root {
+        background-color: #000000 !important;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body class="dark">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
