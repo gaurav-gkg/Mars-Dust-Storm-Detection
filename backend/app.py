@@ -81,7 +81,7 @@ def detect_dust_storm():
             }), 503
         
         # Run inference
-        results = model.predict(image, conf=0.2, iou=0.45, device='0')
+        results = model.predict(image, conf=0.2, iou=0.45, device='cpu')
         result = results[0]
         
         # Draw detections on image
