@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import axios from 'axios'
+import { API_BASE_URL } from '../config'
 import FileUpload from '../components/FileUpload'
 import ImagePreview from '../components/ImagePreview'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -54,7 +55,7 @@ const DustStormDetection = () => {
         formData.append('image', image)
         formData.append('model', selectedModel)
 
-        const response = await axios.post('http://localhost:8000/api/detect', formData, {
+        const response = await axios.post(`${API_BASE_URL}/api/detect`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },

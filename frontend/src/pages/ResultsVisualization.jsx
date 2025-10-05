@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { API_BASE_URL } from '../config'
 import { 
   LineChart, Line, BarChart, Bar, ScatterChart, Scatter, 
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
@@ -21,7 +22,7 @@ const ResultsVisualization = () => {
   const loadCSV = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`http://localhost:8000/api/csv/training_logs`)
+      const response = await fetch(`${API_BASE_URL}/api/csv/training_logs`)
       if (!response.ok) {
         throw new Error('Failed to fetch CSV data')
       }

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { API_BASE_URL } from '../config'
 import FileUpload from '../components/FileUpload'
 import AnimatedCounter from '../components/AnimatedCounter'
 import CircularProgress from '../components/CircularProgress'
@@ -54,7 +55,7 @@ const InferenceTime = () => {
         formData.append('image', image)
         formData.append('model', selectedModel)
         
-        const timeResponse = await fetch('http://localhost:8000/api/inference-time', {
+        const timeResponse = await fetch(`${API_BASE_URL}/api/inference-time`, {
           method: 'POST',
           body: formData
         })
@@ -70,7 +71,7 @@ const InferenceTime = () => {
         formData2.append('image', image)
         formData2.append('model', selectedModel)
         
-        const detectResponse = await fetch('http://localhost:8000/api/detect', {
+        const detectResponse = await fetch(`${API_BASE_URL}/api/detect`, {
           method: 'POST',
           body: formData2
         })
