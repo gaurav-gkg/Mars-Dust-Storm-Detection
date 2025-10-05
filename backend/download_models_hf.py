@@ -16,8 +16,29 @@ def download_from_hf(repo_id, filename, destination):
     url = f"https://huggingface.co/{repo_id}/resolve/main/{filename}"
     
     print(f"Downloading {filename} from Hugging Face...")
+    print(f"URL: {url}")
+    
     try:
-        urllib.request.urlretrieve(url, destination)
+        # Add headers to mimic browser request
+        req = urllib.request.Request(url, headers={
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        })
+        
+        with urllib.request.urlopen(req, timeout=300) as response:
+            with open(destination, 'wb') as f:
+                # Download in chunks for large files
+                chunk_size = 8192
+                downloaded = 0
+                while True:
+                    chunk = response.read(chunk_size)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+                    downloaded += len(chunk)
+                    # Print progress every 10MB
+                    if downloaded % (10 * 1024 * 1024) == 0:
+                        print(f"Downloaded {downloaded // (1024*1024)}MB...")
+        
         file_size = os.path.getsize(destination)
         print(f"✅ Downloaded {filename} ({file_size // (1024*1024)}MB)")
         return True
