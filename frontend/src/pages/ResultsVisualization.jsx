@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { API_BASE_URL } from '../config'
 import { 
   LineChart, Line, BarChart, Bar, ScatterChart, Scatter, 
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
@@ -22,28 +21,40 @@ const ResultsVisualization = () => {
   const loadCSV = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/api/csv/training_logs`)
+      // Fetch CSV as static file from frontend public directory
+      const response = await fetch('/CSVs/training_logs.csv')
       if (!response.ok) {
         throw new Error('Failed to fetch CSV data')
       }
       
-      const result = await response.json()
+      const csvText = await response.text()
       
-      if (result.success && result.data) {
-        const parsedData = result.data
-        setData(parsedData)
-        setFilteredData(parsedData)
-        
-        if (result.columns.length > 0) {
-          setXAxis(result.columns[0])
-          setYAxis(result.columns[1] || result.columns[0])
-        }
-      } else {
-        throw new Error(result.error || 'Failed to load CSV')
+      // Parse CSV manually
+      const lines = csvText.trim().split('\n')
+      const headers = lines[0].split(',').map(h => h.trim())
+      
+      const parsedData = lines.slice(1).map(line => {
+        const values = line.split(',')
+        const row = {}
+        headers.forEach((header, index) => {
+          const value = values[index]?.trim()
+          // Try to parse as number, otherwise keep as string
+          row[header] = !isNaN(value) && value !== '' ? parseFloat(value) : value
+        })
+        return row
+      })
+      
+      setData(parsedData)
+      setFilteredData(parsedData)
+      
+      if (headers.length > 0) {
+        setXAxis(headers[0])
+        setYAxis(headers[1] || headers[0])
       }
+      
     } catch (error) {
       console.error('Error loading CSV:', error)
-      alert(`Failed to load CSV file: ${error.message}. Make sure the backend server is running.`)
+      alert(`Failed to load CSV file: ${error.message}. Make sure the training_logs.csv file exists in the public/CSVs folder.`)
     } finally {
       setLoading(false)
     }

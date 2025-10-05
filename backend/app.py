@@ -7,7 +7,7 @@ import cv2
 import io
 import base64
 import os
-import pandas as pd
+# pandas removed - no longer processing CSVs in backend
 
 app = Flask(__name__)
 CORS(app)
@@ -19,12 +19,7 @@ MODELS = {
     'last.pt': os.path.join(MODEL_DIR, 'last.pt')
 }
 
-# CSV paths
-CSV_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'CSVs')
-CSV_FILES = {
-    'my_results': os.path.join(CSV_DIR, 'my_results.csv'),
-    'training_logs': os.path.join(CSV_DIR, 'training_logs.csv')
-}
+# Note: CSV files are now served as static assets from the frontend
 
 # Load default model
 current_model = None
@@ -146,36 +141,7 @@ def get_inference_time():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/csv/<csv_name>', methods=['GET'])
-def get_csv(csv_name):
-    """Serve CSV files"""
-    try:
-        csv_path = CSV_FILES.get(csv_name)
-        if not csv_path or not os.path.exists(csv_path):
-            return jsonify({'error': f'CSV file {csv_name} not found'}), 404
-        
-        # Read CSV and return as JSON
-        df = pd.read_csv(csv_path)
-        return jsonify({
-            'success': True,
-            'data': df.to_dict(orient='records'),
-            'columns': list(df.columns)
-        })
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/csv-list', methods=['GET'])
-def get_csv_list():
-    """Get list of available CSV files"""
-    available_csvs = []
-    for name, path in CSV_FILES.items():
-        available_csvs.append({
-            'name': name,
-            'available': os.path.exists(path),
-            'path': path
-        })
-    return jsonify({'csvs': available_csvs})
+# CSV endpoints removed - CSVs are now served as static files from frontend
 
 if __name__ == '__main__':
     print("Starting Flask backend server...")
