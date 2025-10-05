@@ -35,7 +35,9 @@ def load_model(model_name='best.pt'):
             print(f"Loaded model: {model_name}")
         else:
             print(f"Model not found: {model_path}")
-            raise FileNotFoundError(f"Model {model_name} not found at {model_path}")
+            # For demo purposes, return a dummy response instead of crashing
+            print("⚠️  Running in demo mode without models")
+            return None
     return current_model
 
 @app.route('/api/health', methods=['GET'])
@@ -69,6 +71,14 @@ def detect_dust_storm():
         
         # Load model
         model = load_model(model_name)
+        
+        # Handle case where no model is available
+        if model is None:
+            return jsonify({
+                'success': False,
+                'error': 'Model not available. Please ensure model files are uploaded.',
+                'demo_mode': True
+            }), 503
         
         # Run inference
         results = model.predict(image, conf=0.2, iou=0.45, device='0')
