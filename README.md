@@ -422,6 +422,3 @@ For issues and questions:
 - [ ] 3D visualization of Mars surface
 
 ---
-
-**Happy Dust Storm Hunting! 🌪️🔴**
-
