@@ -13,11 +13,28 @@ import tempfile
 app = Flask(__name__)
 CORS(app)
 
-# Hugging Face model URLs - REPLACE WITH YOUR ACTUAL HUGGING FACE URLs
-HF_MODELS = {
-    'best.pt': 'https://huggingface.co/gauravgkg/Mars_Model/resolve/main/best.pt',
-    'last.pt': 'https://huggingface.co/gauravgkg/Mars_Model/resolve/main/last.pt'
-}
+# Model configuration based on environment
+# Local development: both models available
+# Render deployment: only best.pt for memory optimization
+
+# Check if running on Render (production)
+IS_RENDER = os.environ.get('RENDER', 'false').lower() == 'true'
+IS_PRODUCTION = os.environ.get('ENVIRONMENT', 'development') == 'production'
+
+if IS_RENDER or IS_PRODUCTION:
+    # Render/Production: ONLY best.pt for memory optimization
+    HF_MODELS = {
+        'best.pt': 'https://huggingface.co/gauravgkg/Mars_Model/resolve/main/best.pt'
+    }
+    print("🚀 Running in production mode - ONLY best.pt model available")
+    print("🔒 Model restriction: last.pt is DISABLED for memory optimization")
+else:
+    # Local development: Both models available
+    HF_MODELS = {
+        'best.pt': 'https://huggingface.co/gauravgkg/Mars_Model/resolve/main/best.pt',
+        'last.pt': 'https://huggingface.co/gauravgkg/Mars_Model/resolve/main/last.pt'
+    }
+    print("🏠 Running in development mode - both models available")
 
 # Cache directory for downloaded models
 CACHE_DIR = os.path.join(tempfile.gettempdir(), 'mars_models')
@@ -56,9 +73,25 @@ def get_model_path(model_name):
 
 def load_model(model_name='best.pt'):
     """
-    Load model with memory optimization and HF fallback
+    Load model with environment-aware restrictions
+    - Local: Both best.pt and last.pt available
+    - Render: Only best.pt for memory optimization
     """
     global current_model, current_model_name
+    
+    # Environment-based model restrictions
+    if IS_RENDER or IS_PRODUCTION:
+        # Production/Render: FORCE best.pt only for memory optimization
+        if model_name != 'best.pt':
+            print(f"🚫 PRODUCTION RESTRICTION: {model_name} is BLOCKED on Render")
+            print(f"🔒 FORCING best.pt model for memory optimization")
+            model_name = 'best.pt'
+        print(f"✅ Using best.pt model (ONLY model allowed on Render)")
+    else:
+        # Local development: Allow both models
+        if model_name not in HF_MODELS:
+            print(f"⚠️ Model {model_name} not available. Using best.pt instead")
+            model_name = 'best.pt'
     
     try:
         # Only reload if different model requested
@@ -130,20 +163,32 @@ def detect_dust_storm():
             return jsonify({'error': 'No image provided'}), 400
         
         image_file = request.files['image']
+        # Get model from request (with environment restrictions)
         model_name = request.form.get('model', 'best.pt')
+        
+        # RENDER SAFETY: Force best.pt only on Render
+        if IS_RENDER or IS_PRODUCTION:
+            if model_name != 'best.pt':
+                print(f"🚫 RENDER BLOCK: {model_name} requested but BLOCKED on Render")
+                model_name = 'best.pt'
+                print(f"🔒 FORCED to best.pt for memory optimization")
         
         print(f"🖼️ Processing image: {image_file.filename}")
         print(f"🤖 Using model: {model_name}")
         
+        # Aggressive memory cleanup before processing
+        gc.collect()
+        
         # Load and optimize image
         image = Image.open(image_file.stream).convert('RGB')
         
-        # Resize large images to reduce memory usage
-        max_size = 1280
+        # Resize large images to reduce memory usage (more aggressive for free tier)
+        max_size = 960  # Reduced from 1280 to save memory
         original_size = image.size
         if max(image.size) > max_size:
             image.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
             print(f"📏 Resized image from {original_size} to {image.size}")
+            gc.collect()  # Clean up after resize
         
         image_np = np.array(image)
         
@@ -151,6 +196,9 @@ def detect_dust_storm():
         model = load_model(model_name)
         
         if model is None:
+            # Clean up before returning
+            del image, image_np
+            gc.collect()
             return jsonify({
                 'success': False,
                 'error': 'Model not available. Please try again.',
@@ -165,9 +213,14 @@ def detect_dust_storm():
             iou=0.45,
             device='cpu',
             verbose=False,
-            max_det=100
+            max_det=50,  # Reduced from 100 to save memory
+            imgsz=640    # Smaller inference size
         )
         result = results[0]
+        
+        # Immediately clean up after inference
+        del image
+        gc.collect()
         
         # Process detections
         image_with_boxes = image_np.copy()
@@ -201,7 +254,7 @@ def detect_dust_storm():
         img_str = base64.b64encode(buffered.getvalue()).decode()
         
         # Clean up memory
-        del image, image_np, image_with_boxes, result_image, results
+        del image_np, image_with_boxes, result_image, results
         gc.collect()
         
         print(f"✅ Detection complete")
@@ -234,7 +287,15 @@ def get_inference_time():
             return jsonify({'error': 'No image provided'}), 400
         
         image_file = request.files['image']
+        # Get model from request (with environment restrictions)
         model_name = request.form.get('model', 'best.pt')
+        
+        # RENDER SAFETY: Force best.pt only on Render
+        if IS_RENDER or IS_PRODUCTION:
+            if model_name != 'best.pt':
+                print(f"🚫 RENDER BLOCK: {model_name} requested but BLOCKED on Render")
+                model_name = 'best.pt'
+                print(f"🔒 FORCED to best.pt for memory optimization")
         
         image = Image.open(image_file.stream).convert('RGB')
         
@@ -298,6 +359,9 @@ if __name__ == '__main__':
     print("=" * 60)
     print(f"📁 Model directory: {MODEL_DIR}")
     print(f"💾 Cache directory: {CACHE_DIR}")
+    print(f"🌐 Environment: {os.environ.get('ENVIRONMENT', 'development')}")
+    print(f"🏠 Render mode: {IS_RENDER}")
+    print(f"🚀 Production mode: {IS_PRODUCTION}")
     print()
     
     # Check model availability
@@ -316,9 +380,12 @@ if __name__ == '__main__':
     print()
     print("=" * 60)
     
-    # Get port from environment variable (for Render/deployment)
-    port = int(os.environ.get('PORT', 8000))
+    # Get port from environment variable (Render uses PORT env var)
+    port = int(os.environ.get('PORT', 8000))  # Render default is 8000
     debug = os.environ.get('FLASK_DEBUG', 'False') == 'True'
+    
+    print(f"🌐 Starting server on port {port}")
+    print(f"🐛 Debug mode: {debug}")
     
     app.run(debug=debug, port=port, host='0.0.0.0')
 

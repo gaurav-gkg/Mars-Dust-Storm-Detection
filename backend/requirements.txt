@@ -1,9 +1,19 @@
+# Core Flask dependencies
 flask>=3.0.0
 flask-cors>=4.0.0
+gunicorn>=21.2.0
+
+# Machine Learning dependencies
 ultralytics>=8.0.0
-pillow>=10.0.0
-opencv-python-headless>=4.8.0
-numpy>=1.24.0
 torch>=2.0.0
 torchvision>=0.15.0
+numpy>=1.24.0
+
+# Image processing
+pillow>=10.0.0
+opencv-python-headless>=4.8.0
+
+# HTTP requests for Hugging Face downloads
+requests>=2.31.0
+urllib3>=2.0.0
 

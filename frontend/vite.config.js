@@ -7,10 +7,24 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://localhost:8080', // Updated for Google Cloud Run default port
         changeOrigin: true,
+        secure: false,
       }
     }
-  }
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    minify: 'terser',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['@headlessui/react', '@heroicons/react'],
+        },
+      },
+    },
+  },
 })
 
