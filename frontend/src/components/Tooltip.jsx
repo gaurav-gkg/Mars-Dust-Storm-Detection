@@ -6,7 +6,7 @@ const Tooltip = ({ children, content, position = 'top' }) => {
 
   const positionClasses = {
     top: '-top-2 left-1/2 -translate-x-1/2 -translate-y-full',
-    bottom: '-bottom-2 left-1/2 -translate-x-1/2 translate-y-full',
+    bottom: '-bottom-3 left-1/2 -translate-x-1/2 translate-y-full',
     left: 'top-1/2 -left-2 -translate-y-1/2 -translate-x-full',
     right: 'top-1/2 -right-2 -translate-y-1/2 translate-x-full',
   }
@@ -25,7 +25,7 @@ const Tooltip = ({ children, content, position = 'top' }) => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.15 }}
-            className={`absolute ${positionClasses[position]} z-50 px-3 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg shadow-lg border border-gray-700 whitespace-nowrap pointer-events-none`}
+            className={`absolute ${positionClasses[position]} z-50 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded-md shadow-lg border border-gray-700 max-w-48 pointer-events-none`}
           >
             {content}
             <div className={`absolute w-2 h-2 bg-gray-900 border-gray-700 transform rotate-45 ${
