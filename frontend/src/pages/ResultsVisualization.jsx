@@ -221,7 +221,7 @@ const ResultsVisualization = () => {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: idx * 0.1 }}
-                  className="card"
+                  className="card-tooltip-safe"
                 >
                   <div className="flex items-center justify-center mb-3">
                     <p className="text-sm text-theme-muted uppercase tracking-wider font-semibold">{cleanName}</p>
